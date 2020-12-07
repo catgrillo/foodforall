@@ -1,0 +1,33 @@
+{% load static %}
+{% block content %}
+<head>
+    <link rel="stylesheet" type="text/css" href="{% static 'recipes/style.css' %}">
+    <title>Recipes for All</title>
+</head>
+<header>
+    <h1>Recipes for All</h1>
+    <nav>
+        <ul>
+            <li class="nav-li"><a href="{% url 'recipes:home_page' %}">Home</a></li>
+            <li class="nav-li"><a href="{% url 'recipes:all' %}">Recipes</a></li>
+            <li class="nav-li"><a href="{% url 'recipes:user_recipe_list' %}">Your Recipes</a></li>
+            <li class="nav-li">
+                {% if user.is_authenticated %}
+                <a href="{% url 'logout' %}?next={% url 'recipes:all' %}">Logout</a>
+                {% else %}
+                <a href="{% url 'login' %}?next={% url 'recipes:all' %}">Login</a>
+                {% endif %}
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<h2>Delete Recipe</h2>
+
+<p>Are you sure you want to delete the recipe: {{ recipe }}?</p>
+
+<form action="" method="POST">
+  {% csrf_token %}
+  <input type="submit" value="Yes, delete.">
+</form>
+{% endblock %}

@@ -1,0 +1,78 @@
+{% load static %}
+{% block content %}
+<head>
+    <link rel="stylesheet" type="text/css" href="{% static 'recipes/style.css' %}">
+    <title>Recipes for All</title>
+</head>
+<body style="font-family: Georgia;">
+<header>
+    <h1>Recipes for All</h1>
+    <nav>
+        <ul class="nav-bar">
+            <li class="nav-li"><a href="{% url 'recipes:home_page' %}">Home</a></li>
+            <li class="nav-li"><a href="{% url 'recipes:all' %}">Recipes</a></li>
+            <li class="nav-li active"><ahref="{% url 'recipes:user_recipe_list' %}">Your Recipes</a></li>
+            <li class="nav-li">
+                {% if user.is_authenticated %}
+                <a href="{% url 'logout' %}?next={% url 'recipes:home_page' %}">Logout</a>
+                {% else %}
+                <a href="{% url 'login' %}?next={% url 'recipes:home_page' %}">Login</a>
+                {% endif %}
+            </li>
+        </ul>
+    </nav>
+</header>
+<div style="width: 65%; float: left;" id="recipes-left">
+<h2 style="font-size: 200%;">Your Recipes</h2>
+<button><a style="color: #FFFFFF;" href="{% url 'recipes:recipe_create' %}">Add a Recipe</a></button>
+<br clear="all"/>
+
+{% if my_recipes %}
+
+{% for recipe in my_recipes %}
+    {% if recipe.owner == user %}
+    <li style="width: 30%;" class="recipe-detail">
+        <h3 style="font-size: 150%"><a class="recipe-title" href="{% url 'recipes:recipe_detail'  recipe.id %}">{{ recipe.title }}</a></h3>
+        <div class="edit-delete">
+        {% if recipe.owner == user %}
+        (<a href="{% url 'recipes:recipe_update' recipe.id %}">Edit</a> |
+        <a href="{% url 'recipes:recipe_delete' recipe.id %}">Delete</a>)
+        {% endif %}
+        </div>
+        {% if recipe.content_type %}
+        <img style="display: block; margin-left: auto; margin-right: auto; max-width:90%;" src="{% url 'recipes:recipe_picture' recipe.id %}"
+            onclick="document.getElementById('overlay').style.display = 'block';">
+        {% endif %}
+        <p style="text-align:center; color: #555555; padding: 5px;">{{recipe.description}}</p>
+    </li>
+    {% endif %}
+{% endfor %}
+{% else %}
+  <p>You have not input any recipes</p>
+{% endif %}
+</div>
+
+<div style="width: 34%; float: right; border: solid 2px #555555; border-radius: 10px; margin: 5px; text-align: center;" id="recipes-right">
+    <h2 style="font-size: 175%; margin-left: 5px;">Your Favorites</h2>
+    {% for recipe in my_recipes %}
+    {% if recipe.id in favorites %}
+        <li style="width: 45%;" class="recipe-detail">
+            <h3><a class="recipe-title" href="{% url 'recipes:recipe_detail'  recipe.id %}">{{ recipe.title }}</a></h3>
+            <div class="edit-delete">
+            {% if recipe.owner == user %}
+            (<a href="{% url 'recipes:recipe_update' recipe.id %}">Edit</a> |
+            <a href="{% url 'recipes:recipe_delete' recipe.id %}">Delete</a>)
+            {% endif %}
+            </div>
+            {% if recipe.content_type %}
+            <img style="display: block; margin-left: auto; margin-right: auto; max-width:90%;" src="{% url 'recipes:recipe_picture' recipe.id %}"
+                onclick="document.getElementById('overlay').style.display = 'block';">
+            {% endif %}
+            <p style="text-align:center; color: #555555; padding: 5px;">{{recipe.description}}</p>
+        </li>
+    {% endif %}
+    {% endfor %}
+</div>
+</body>
+
+{% endblock %}

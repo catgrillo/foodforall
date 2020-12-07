@@ -1,0 +1,22 @@
+{% load static%}
+{% block content %}
+<head>
+    <link rel="stylesheet" type="text/css" href="{% static 'recipes/style.css' %}">
+    <title>Recipes for All</title>
+</head>
+<header id="form-header">
+    <h1>Recipes for All</h1>
+</header>
+
+<h2>Delete Ingredient</h2>
+
+<p>Are you sure you want to delete</p>
+<p>{{ ingredient.name }}?</p>
+
+<form action="" method="POST">
+  {% csrf_token %}
+  <input type="submit"  class="btn btn-primary" value="Yes, delete.">
+  <a href="{% url 'recipes:recipe_update' ingredient.recipe.id %}" class="btn btn-secondary">Cancel</a>
+
+</form>
+{% endblock %}

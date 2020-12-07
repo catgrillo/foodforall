@@ -1,0 +1,55 @@
+<!--{% extends "base_bootstrap.html" %}-->
+{% load crispy_forms_tags %}
+{% load static %}
+{% block content %}
+<head>
+    <link rel="stylesheet" type="text/css" href="{% static 'recipes/style.css' %}">
+    <title>Recipes for All</title>
+</head>
+<header id="form-header">
+    <h1>Recipes for All</h1>
+</header>
+
+<p>
+  <form action="" method="post" id="upload_form" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form|crispy }}
+    <!--{{ value|linebreaksbr }}-->
+
+    <input type="submit" value="Submit Recipe">
+    <input type="submit" value="Cancel" onclick="window.location.href='{% url 'recipes:all' %}';return false;">
+  </form>
+</p>
+
+{% if user.is_authenticated %}
+    <!--<br clear="all"/>-->
+    <p>
+    {% load crispy_forms_tags %}
+    <form method="post" action="{% url 'recipes:recipe_ingredient_create' recipe.id %}">
+        {% csrf_token %}
+        {{ ingredient_form|crispy }}
+    <input type="submit" value="Submit Ingredient">
+    </form>
+    </p>
+{% endif %}
+{% for ingredient in ingredients %}
+    <p style=""> {{ ingredient.name }} - {{ingredient.measurement}}
+    <a style="color: #555555;" href="{% url 'recipes:recipe_ingredient_delete' ingredient.id %}"><i class="fa fa-trash"></i></a> <!--{% url 'recipes:recipe_update' ingredient.recipe.id %}-->
+    <!--recipes:recipe_ingredient_delete-->
+    </p>
+{% endfor %}
+
+<!-- https://stackoverflow.com/questions/2472422/django-file-upload-size-limit -->
+<script>
+$("#upload_form").submit(function() {
+  console.log('Checking file size');
+  if (window.File && window.FileReader && window.FileList && window.Blob) {
+      var file = $('#id_{{ form.upload_field_name }}')[0].files[0];
+      if (file && file.size > {{ form.max_upload_limit }} ) {
+          alert("File " + file.name + " of type " + file.type + " must be < {{ form.max_upload_limit_text }}");
+      return false;
+    }
+  }
+});
+</script>
+{% endblock %}

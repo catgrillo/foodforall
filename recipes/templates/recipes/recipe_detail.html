@@ -1,0 +1,134 @@
+{% load humanize %} <!-- https://docs.djangoproject.com/en/3.0/ref/contrib/humanize -->
+{% load static %}
+{% block head %}
+<style>
+.overlay{
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+  display: none;
+  background-color: rgba(0,0,0,0.5); /*dim the background*/
+}
+
+.control-label{
+    font-size: 125%;
+    font-weight: bold;
+}
+
+#detail-body{
+    color: #555555;
+}
+
+.detail-heading{
+    color: #000000;
+}
+
+main{
+    font-family: Georgia;
+}
+</style>
+
+{% endblock %}
+{% block content %}
+<head>
+    <link rel="stylesheet" type="text/css" href="{% static 'recipes/style.css' %}">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/v4-shims.css">
+    <title>Recipes for All</title>
+</head>
+<main>
+    <header>
+        <h1>Recipes for All</h1>
+        <nav>
+            <ul>
+                <li class="nav-li"><a href="{% url 'recipes:home_page' %}">Home</a></li>
+                <li class="nav-li"><a href="{% url 'recipes:all' %}">Recipes</a></li>
+                <li class="nav-li"><a href="{% url 'recipes:user_recipe_list' %}">Your Recipes</a></li>
+                <li class="nav-li">
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'logout' %}?next={% url 'recipes:all' %}">Logout</a>
+                    {% else %}
+                    <a href="{% url 'login' %}?next={% url 'recipes:all' %}">Login</a>
+                    {% endif %}
+                </li>
+            </ul>
+        </nav>
+    </header>
+    {% if user.is_authenticated %}
+
+    {% if recipe.content_type %}
+    <div id="overlay" class="overlay" style="text-align: center;"
+       onclick="document.getElementById('overlay').style.display = 'none';" >
+    <img style="width:90%;margin-top: 50px; border:3px solid black;" src="{% url 'recipes:recipe_picture' recipe.id %}">
+    </div>
+    {% endif %}
+    <span style="float: right;">
+    ({{ recipe.updated_at|naturaltime }})
+    {% if recipe.owner == user %}
+    <a style="color: #555555;" href="{% url 'recipes:recipe_update' recipe.id %}"><i class="fa fa-pencil"></i></a>
+    <a style="color: #555555;" href="{% url 'recipes:recipe_delete' recipe.id %}"><i class="fa fa-trash"></i></a>
+    {% endif %}
+    </span>
+
+    <button style="margin-top:10px;"><a style="color: #FFFFFF;" href="{% url 'recipes:all' %}">All Recipes</a></button>
+
+    <h2 style="font-size: 250%; margin-top: 5px;">{{ recipe.title }}</h2>
+    {% if recipe.content_type %}
+    <img style="float:right; max-width:50%;" src="{% url 'recipes:recipe_picture' recipe.id %}"
+        onclick="document.getElementById('overlay').style.display = 'block';">
+    {% endif %}
+    <div id="detail-body">
+    <h4 class ="detail-heading" style="font-size: 150%;">Description: </h4>
+    <p>
+        {{ recipe.description }}
+    </p>
+
+    <h4 class ="detail-heading" style="font-size: 150%;">Ingredients: </h4>
+
+    {% for ingredient in ingredients %}
+        <p style="margin-left: 20px;">
+            <span style="font-weight: bold;">{{ ingredient.name }}</span> - {{ingredient.measurement}}
+            <!--<a style="color: #555555;" href=""><i class="fa fa-trash"></i></a> <!--{% url 'recipes:recipe_update' ingredient.recipe.id %}-->
+        </p>
+    {% endfor %}
+
+
+    <h4 class ="detail-heading" style="font-size: 150%;">Instructions: </h4>
+
+    <p>
+        {{ recipe.instructions|linebreaks }}
+    </p>
+    </div>
+    {% else %}
+    <p style="font-size: 150%">Please login to view recipes</p>
+    {% endif %}
+
+    <br/>
+    <br/>
+
+    {% if user.is_authenticated %}
+    <!--<br clear="all"/>-->
+    <p>
+    {% load crispy_forms_tags %}
+    <form method="post" action="{% url 'recipes:recipe_comment_create' recipe.id %}">
+        {% csrf_token %}
+        {{ comment_form|crispy }}
+    <input style="margin-top: 5px;" type="submit" value="Submit">
+    <!--<input type="submit" value="All Recipes" onclick="window.location.href='{% url 'recipes:all' %}';return false;">-->
+    </form>
+    </p>
+    {% endif %}
+    {% for comment in comments %}
+        <h6 style="margin:5px; font-size: 100%;">{{comment.owner}}</h6>
+        <p style="color: #555555; margin: 5px 5px 20px 5px;"> {{ comment.text }}
+        ({{ comment.updated_at|naturaltime }})
+        {% if user == comment.owner %}
+        <a style="color: #555555;" href="{% url 'recipes:recipe_comment_delete' comment.id %}"><i class="fa fa-trash"></i></a>
+        {% endif %}
+        </p>
+    {% endfor %}
+</main>
+{% endblock %}

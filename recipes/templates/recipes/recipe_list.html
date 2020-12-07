@@ -1,0 +1,120 @@
+{% load static %}
+{% block content %}
+<head>
+    <link rel="stylesheet" type="text/css" href="{% static 'recipes/style.css' %}">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"
+    crossorigin="anonymous"></script>
+
+    <script
+    src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"
+    crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/v4-shims.css">
+    <title>Recipes for All</title>
+</head>
+<body style="font-family: Georgia;">
+    <header>
+        <h1>Recipes for All</h1>
+        <nav>
+            <ul>
+                <li class="nav-li"><a href="{% url 'recipes:home_page' %}">Home</a></li>
+                <li class="nav-li active"><a href="{% url 'recipes:all' %}">Recipes</a></li>
+                <li class="nav-li"><a href="{% url 'recipes:user_recipe_list' %}">Your Recipes</a></li>
+                <li class="nav-li">
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'logout' %}?next={% url 'recipes:home_page' %}">Logout</a>
+                    {% else %}
+                    <a href="{% url 'login' %}?next={% url 'recipes:home_page' %}">Login</a>
+                    {% endif %}
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <h2 style="font-size: 250%;">Recipes</h2>
+    <button><a style="color: #FFFFFF;" href="{% url 'recipes:recipe_create' %}">Add a Recipe</a></button>
+    <br clear="all"/>
+    <h2>Search:</h2>
+    <div>
+         <!--https://www.w3schools.com/howto/howto_css_search_button.asp-->
+        <form>
+              <input style="width: 20%; border-radius: 10px; height: 30px; " type="text" placeholder="Search.." name="search"
+              {% if search %} value="{{ search }}" {% endif %}
+              >
+              <button type="submit"><i style="color: #FFFFFF;" class="fa fa-search"></i></button>
+            <a href="{% url 'recipes:all' %}"><i style="color: #555555; text-decoration: none;" class="fa fa-undo"></i></a>
+        </form>
+    </div>
+    <div style="text-align:center;">
+    {% if recipe_list %}
+
+    {% for recipe in recipe_list %}
+        <li stye="font-family: Georgia;" class="recipe-detail">
+            <h3 class="heading-title" style="display: inline; font-size: 150%;"><a class="recipe-title" href="{% url 'recipes:recipe_detail'  recipe.id %}">{{ recipe.title }}</a></h3>
+            {% if user.is_authenticated %}
+            <!-- Two hrefs with two stacked icons each - one showing and one hidden -->
+            <a href="#" onclick=
+                "favPost('{% url 'recipes:recipe_unfavorite' recipe.id %}', {{ recipe.id }} );return false;"
+                {% if recipe.id not in favorites %} style="display: none;" {% endif %}
+                id="favorite_star_{{recipe.id}}">
+            <span class="fa-stack" style="vertical-align: middle;">
+            <i class="fa fa-star fa-stack-1x" style="color: orange;"></i>
+            <i class="fa fa-star-o fa-stack-1x"></i>
+            </span>
+            </a>
+            <!-- the second href -->
+            <a href="#" onclick=
+                 "favPost('{% url 'recipes:recipe_favorite' recipe.id %}', {{ recipe.id }} );return false;"
+                {% if recipe.id in favorites %} style="display: none;" {% endif %}
+                id="unfavorite_star_{{recipe.id}}">
+            <span class="fa-stack" style="vertical-align: middle;">
+            <i class="fa fa-star fa-stack-1x" style="display: none; color: orange;"></i>
+            <i class="fa fa-star-o fa-stack-1x"></i>
+            </span>
+            </a>
+            {% endif %}
+            {% if recipe.content_type %}
+            <img style="display: block; margin-left: auto; margin-right: auto; max-width:90%;" src="{% url 'recipes:recipe_picture' recipe.id %}"
+                onclick="document.getElementById('overlay').style.display = 'block';">
+            {% endif %}
+            <p style="text-align:center; color: #555555; padding: 5px;">{{recipe.description}}</p>
+            <div class="edit-delete">
+            {% if recipe.owner == user %}
+            (<a href="{% url 'recipes:recipe_update' recipe.id %}">Edit</a> |
+            <a href="{% url 'recipes:recipe_delete' recipe.id %}">Delete</a>)
+            {% endif %}
+            </div>
+        </li>
+      {% endfor %}
+    {% else %}
+      <p>There are no recipes available.</p>
+    {% endif %}
+    </div>
+</body>
+
+<script>
+function favPost(url, recipe_id) {
+    console.log('Requesting JSON');
+    $.post(url, {},  function(rowz){
+        console.log(url, 'finished');
+        $("#unfavorite_star_"+recipe_id).toggle();
+        $("#favorite_star_"+recipe_id).toggle();
+    }).fail(function(xhr) {
+        alert('Url failed with '+xhr.status+' '+url);
+    });
+}
+</script>
+{% endblock %}
+
+<!--<ul>-->
+<!--  {% for recipe in recipe_list %}-->
+<!--    <li>-->
+<!--        <a href="{% url 'recipes:recipe_detail'  recipe.id %}">{{ recipe.title }}</a>-->
+<!--        {% if recipe.owner == user %}-->
+<!--        (<a href="{% url 'recipes:recipe_update' recipe.id %}">Edit</a> |-->
+<!--        <a href="{% url 'recipes:recipe_delete' recipe.id %}">Delete</a>)-->
+<!--        {% endif %}-->
+<!--    </li>-->
+<!--  {% endfor %}-->
+<!--</ul>-->
